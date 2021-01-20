@@ -1,9 +1,9 @@
 var createError = require("http-errors");
 var express = require("express");
 var path = require("path");
-var cookieParser = require("cookie-parser");
-var session = require("express-session");
-var FileStore = require("session-file-store")(session);
+//var cookieParser = require("cookie-parser");
+//var session = require("express-session");
+//var FileStore = require("session-file-store")(session);
 var logger = require("morgan");
 
 var indexRouter = require("./routes/index");
@@ -12,8 +12,12 @@ var dishRouter = require("./routes/dishRouter");
 var promoRouter = require("./routes/promoRouter");
 var leaderRouter = require("./routes/leaderRouter");
 
+var passport = require("passport");
+var authenticate = require("./authenticate");
+var config = require("./config");
+
 const mongoose = require("mongoose");
-const url = "mongodb://localhost:27017/planner";
+const url = config.mongolUrl;
 const connect = mongoose.connect(url);
 
 connect.then(
@@ -26,6 +30,16 @@ connect.then(
 );
 
 var app = express();
+app.all("*", (req, res, next) => {
+  if (req.secure) {
+    return next();
+  } else {
+    res.redirect(
+      307,
+      "https://" + req.hostname + ":" + app.get("secPort") + req.url
+    );
+  }
+});
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -35,36 +49,22 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 //app.use(cookieParser("12345-67890-11121-14151"));
-app.use(
-  session({
-    name: "session-id",
-    secret: "12345-67890-11121-14151",
-    resave: false,
-    saveUninitialized: false,
-    store: new FileStore(),
-  })
-);
+// app.use(
+//   session({
+//     name: "session-id",
+//     secret: "12345-67890-11121-14151",
+//     resave: false,
+//     saveUninitialized: false,
+//     store: new FileStore(),
+//   })
+// );
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 
-function auth(req, res, next) {
-  if (!req.session.user) {
-    let err = new Error("You are not authenticated!");
-    err.status = 401;
-    return next(err);
-  } else {
-    if (req.session.user === "authenticated") {
-      next();
-    } else {
-      let err = new Error("You are not authenticated!");
-      err.status = 401;
-      next(err);
-    }
-  }
-}
-
-app.use(auth);
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/dishes", dishRouter);
