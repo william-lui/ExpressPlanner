@@ -4,13 +4,16 @@ const bodyParser = require("body-parser");
 const dishRouter = express.Router();
 dishRouter.use(bodyParser.json());
 
-const mongoose = require("mongoose");
 const Dishes = require("../models/dishes");
 const authenticate = require("../authenticate");
+const cors = require("./cors");
 
 dishRouter
   .route("/")
-  .get((req, res, next) => {
+  .options(cors.corsWithOption, (req, res) => {
+    res.sendStatus(200);
+  })
+  .get(cors.cors, (req, res, next) => {
     Dishes.find({})
       .populate("comments.author")
       .then(
@@ -24,6 +27,7 @@ dishRouter
       .catch((err) => next(err));
   })
   .post(
+    cors.corsWithOption,
     authenticate.verifyUser,
     authenticate.verifyAdmin(),
     (req, res, next) => {
@@ -41,6 +45,7 @@ dishRouter
     }
   )
   .put(
+    cors.corsWithOption,
     authenticate.verifyUser,
     authenticate.verifyAdmin(),
     (req, res, next) => {
@@ -49,6 +54,7 @@ dishRouter
     }
   )
   .delete(
+    cors.corsWithOption,
     authenticate.verifyUser,
     authenticate.verifyAdmin(),
     (req, res, next) => {
@@ -67,7 +73,10 @@ dishRouter
 
 dishRouter
   .route("/:dishId")
-  .get((req, res, next) => {
+  .options(cors.corsWithOption, (req, res) => {
+    res.sendStatus(200);
+  })
+  .get(cors.cors, (req, res, next) => {
     Dishes.findById(req.params.dishId)
       .populate("comments.author")
       .then(
@@ -81,6 +90,7 @@ dishRouter
       .catch((err) => next(err));
   })
   .post(
+    cors.corsWithOption,
     authenticate.verifyUser,
     authenticate.verifyAdmin(),
     (req, res, next) => {
@@ -89,6 +99,7 @@ dishRouter
     }
   )
   .put(
+    cors.corsWithOption,
     authenticate.verifyUser,
     authenticate.verifyAdmin(),
     (req, res, next) => {
@@ -109,6 +120,7 @@ dishRouter
     }
   )
   .delete(
+    cors.corsWithOption,
     authenticate.verifyUser,
     authenticate.verifyAdmin(),
     (req, res, next) => {
@@ -126,8 +138,11 @@ dishRouter
   );
 
 dishRouter
+  .options(cors.corsWithOption, (req, res) => {
+    res.sendStatus(200);
+  })
   .route("/:dishId/comments")
-  .get((req, res, next) => {
+  .get(cors.cors, (req, res, next) => {
     Dishes.findById(req.params.dishId)
       .populate("comments.author")
       .then(
@@ -148,7 +163,7 @@ dishRouter
       )
       .catch((err) => next(err));
   })
-  .post(authenticate.verifyUser, (req, res, next) => {
+  .post(cors.corsWithOption, authenticate.verifyUser, (req, res, next) => {
     Dishes.findById(req.params.dishId)
       .then(
         (dish) => {
@@ -180,13 +195,14 @@ dishRouter
       )
       .catch((err) => next(err));
   })
-  .put(authenticate.verifyUser, (req, res, next) => {
+  .put(cors.corsWithOption, authenticate.verifyUser, (req, res, next) => {
     res.statusCode = 403;
     res.end(
       "put not supported for /dishes/" + req.params.dishId + "/comments/"
     );
   })
   .delete(
+    cors.corsWithOption,
     authenticate.verifyUser,
     authenticate.verifyAdmin(),
     (req, res, next) => {
@@ -222,7 +238,10 @@ dishRouter
 
 dishRouter
   .route("/:dishId/comments/:commentId")
-  .get((req, res, next) => {
+  .options(cors.corsWithOption, (req, res) => {
+    res.sendStatus(200);
+  })
+  .get(cors.cors, (req, res, next) => {
     Dishes.findById(req.params.dishId)
       .populate("comments.author")
       .then(
@@ -249,7 +268,7 @@ dishRouter
       )
       .catch((err) => next(err));
   })
-  .post(authenticate.verifyUser, (req, res, next) => {
+  .post(cors.corsWithOption, authenticate.verifyUser, (req, res, next) => {
     res.statusCode = 403;
     res.end(
       "POST operation not supported on /dishes/" +
@@ -258,7 +277,7 @@ dishRouter
         req.params.commentId
     );
   })
-  .put(authenticate.verifyUser, (req, res, next) => {
+  .put(cors.corsWithOption, authenticate.verifyUser, (req, res, next) => {
     Dishes.findById(req.params.dishId)
       .then(
         (dish) => {
@@ -311,7 +330,7 @@ dishRouter
       )
       .catch((err) => next(err));
   })
-  .delete(authenticate.verifyUser, (req, res, next) => {
+  .delete(cors.corsWithOption, authenticate.verifyUser, (req, res, next) => {
     Dishes.findById(req.params.dishId)
       .then(
         (dish) => {

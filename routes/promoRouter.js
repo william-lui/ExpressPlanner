@@ -7,9 +7,14 @@ promoRouter.use(bodyParser.json());
 const Promotions = require("../models/promotions");
 let authenticate = require("../authenticate");
 
+const cors = require("./cors");
+
 promoRouter
   .route("/")
-  .get((req, res, next) => {
+  .options(cors.corsWithOption, (req, res) => {
+    res.sendStatus(200);
+  })
+  .get(cors.cors, (req, res, next) => {
     Promotions.find({})
       .then(
         (promos) => {
@@ -24,6 +29,7 @@ promoRouter
       });
   })
   .post(
+    cors.corsWithOption,
     authenticate.verifyUser,
     authenticate.verifyAdmin(),
     (req, res, next) => {
@@ -40,6 +46,7 @@ promoRouter
     }
   )
   .put(
+    cors.corsWithOption,
     authenticate.verifyUser,
     authenticate.verifyAdmin(),
     (req, res, next) => {
@@ -48,6 +55,7 @@ promoRouter
     }
   )
   .delete(
+    cors.corsWithOption,
     authenticate.verifyUser,
     authenticate.verifyAdmin(),
     (req, res, next) => {
@@ -66,7 +74,10 @@ promoRouter
 
 promoRouter
   .route("/:promoId")
-  .get((req, res, next) => {
+  .options(cors.corsWithOption, (req, res) => {
+    res.sendStatus(200);
+  })
+  .get(cors.cors, (req, res, next) => {
     Promotions.findById(req.params.promoId)
       .then(
         (promo) => {
@@ -79,6 +90,7 @@ promoRouter
       .catch((err) => next(err));
   })
   .post(
+    cors.corsWithOption,
     authenticate.verifyUser,
     authenticate.verifyAdmin(),
     (req, res, next) => {
@@ -89,6 +101,7 @@ promoRouter
     }
   )
   .put(
+    cors.corsWithOption,
     authenticate.verifyUser,
     authenticate.verifyAdmin(),
     (req, res, next) => {
@@ -109,6 +122,7 @@ promoRouter
     }
   )
   .delete(
+    cors.corsWithOption,
     authenticate.verifyUser,
     authenticate.verifyAdmin(),
     (req, res, next) => {

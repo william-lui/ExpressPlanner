@@ -6,6 +6,8 @@ let JwtStrategy = require("passport-jwt").Strategy;
 let ExtractJwt = require("passport-jwt").ExtractJwt;
 let jwt = require("jsonwebtoken");
 
+let FaceBookStrategy = require("passport-facebook-token");
+
 let config = require("./config");
 
 exports.local = passport.use(new LocalStrategy(User.authenticate()));
@@ -13,7 +15,7 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 exports.getToken = (user) => {
-  return jwt.sign(user, config.secretKey, { expiresIn: 3600 });
+  return jwt.sign(user, config.secretKey, { expiresIn: 7200 });
 };
 
 let opts = {};
@@ -33,6 +35,38 @@ exports.jwtPassport = passport.use(
       }
     });
   })
+);
+
+exports.facebookPassport = passport.use(
+  new FaceBookStrategy(
+    {
+      clientID: config.facebook.clientId,
+      clientSecret: config.facebook.clientSecret,
+    },
+    (accessToken, refreshToken, profile, done) => {
+      User.findOne({ facebookId: profile.id }).then((err, user) => {
+        if (err) {
+          done(err, false);
+        }
+
+        if (user == null) {
+          user = new User({ username: profile.displayName });
+          user.facebookId = profile.id;
+          user.firstName = profile.name.givenName;
+          user.lastName = profile.name.familyName;
+          user.save((err, user) => {
+            if (err) {
+              done(err, false);
+            } else {
+              done(null, user);
+            }
+          });
+        } else {
+          done(null, user);
+        }
+      });
+    }
+  )
 );
 
 exports.verifyUser = passport.authenticate("jwt", { session: false });

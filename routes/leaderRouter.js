@@ -6,10 +6,14 @@ leaderRouter.use(bodyParser.json());
 
 const Leaders = require("../models/leaders");
 let authenticate = require("../authenticate");
+const cors = require("./cors");
 
 leaderRouter
   .route("/")
-  .get((req, res, next) => {
+  .options(cors.corsWithOption, (req, res) => {
+    res.sendStatus(200);
+  })
+  .get(cors.cors, (req, res, next) => {
     Leaders.find({})
       .then(
         (leaders) => {
@@ -24,6 +28,7 @@ leaderRouter
       });
   })
   .post(
+    cors.corsWithOption,
     authenticate.verifyUser,
     authenticate.verifyAdmin(),
     (req, res, next) => {
@@ -40,6 +45,7 @@ leaderRouter
     }
   )
   .put(
+    cors.corsWithOption,
     authenticate.verifyUser,
     authenticate.verifyAdmin(),
     (req, res, next) => {
@@ -48,6 +54,7 @@ leaderRouter
     }
   )
   .delete(
+    cors.corsWithOption,
     authenticate.verifyUser,
     authenticate.verifyAdmin(),
     (req, res, next) => {
@@ -66,7 +73,10 @@ leaderRouter
 
 leaderRouter
   .route("/:leaderId")
-  .get((req, res, next) => {
+  .options(cors.corsWithOption, (req, res) => {
+    res.sendStatus(200);
+  })
+  .get(cors.cors, (req, res, next) => {
     Leaders.findById(req.params.leaderId)
       .then(
         (leader) => {
@@ -79,6 +89,7 @@ leaderRouter
       .catch((err) => next(err));
   })
   .post(
+    cors.corsWithOption,
     authenticate.verifyUser,
     authenticate.verifyAdmin(),
     (req, res, next) => {
@@ -89,6 +100,7 @@ leaderRouter
     }
   )
   .put(
+    cors.corsWithOption,
     authenticate.verifyUser,
     authenticate.verifyAdmin(),
     (req, res, next) => {
@@ -109,6 +121,7 @@ leaderRouter
     }
   )
   .delete(
+    cors.corsWithOption,
     authenticate.verifyUser,
     authenticate.verifyAdmin(),
     (req, res, next) => {
